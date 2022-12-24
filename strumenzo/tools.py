@@ -115,6 +115,6 @@ class Recording(object):
     """
     Test
     """
-    def __init__(self, traces, description='', **kwargs):
+    def __init__(self, traces, rec_id='', date_time='',description='', **kwargs):
   
   
