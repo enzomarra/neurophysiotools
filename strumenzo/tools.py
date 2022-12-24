@@ -51,7 +51,7 @@ def bandpass_filter(array, lowcut, highcut, sf, order=4):
     frequency allowed on an array sampled at sf sampling frequency. 
     Default is 4th order. Returns the filtered array."""    
     sos = sig.butter(order, [lowcut, highcut], btype='bandpass', output='sos', analog=True)
-    filtered = sig.sosfilter(b, a, data)
+    filtered = sig.sosfilter(sos, data)
     return filtered
 
 def notch_filter(array, notch=50.0, window=1.0, sf, order=4):
@@ -62,7 +62,7 @@ def notch_filter(array, notch=50.0, window=1.0, sf, order=4):
     lowcut= notch - (window/2.0)
     highcut= notch +(window/2.0)
     sos = sig.butter(order, [lowcut, highcut], btype='bandstop', output='sos', analog=True)
-    filtered = sig.sosfilter(b, a, data)
+    filtered = sig.sosfilter(sos, data)
     return filtered
 
 # Downsampling functions
