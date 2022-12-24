@@ -13,53 +13,59 @@ import numpy as np
 import scipy.signal as sig
 
 # Classic filters
-def butter_lowpass(cutoff, fs, order=4):
-    nyq = 0.5 * fs
-    normal_cutoff = cutoff / nyq
-    b, a = sig.butter(order, normal_cutoff, btype='low', analog=True)
-    return b, a
+def butter_lowpass_filter(array, cutoff, sf, order=4):
+    """Implements scipy Butterworth lowpass filter at given cutoff
+    on an array sampled at sf sampling frequency. Default is 4th order.
+    Returns the filtered array."""
+    sos = sig.butter(order, cutoff, btype='lowpass', output='sos', analog=True)
+    filtered = sig.sosfilter(sos, array)
+    return filtered
 
-def butter_lowpass_filter(array, cutoff, fs, order=4):
-    b, a = butter_lowpass(cutoff, fs, order=order)
-    y = sig.lfilter(b, a, data)
-    return y
+def bessel_lowpass_filter(array, cutoff, sf, order=4):
+    """Implements scipy Bessel lowpass filter at given cutoff
+    on an array sampled at sf sampling frequency. Default is 4th order.
+    Returns the filtered array."""       
+    sos = sig.bessel(order, cutoff, btype='lowpass', output='sos', analog=True)
+    filtered = sig.sosfilter(sos, array)
+    return filtered
 
-def bessel_lowpass(cutoff, fs, order=4):
-    nyq = 0.5 * fs
-    normal_cutoff = cutoff / nyq
-    b, a = sig.bessel(order, normal_cutoff, btype='low', analog=True)
-    return b, a
+def butter_highpass_filter(array, cutoff, sf, order=2):
+    """Implements scipy Butterworth highpass filter at given cutoff
+    on an array sampled at sf sampling frequency. Default is 4th order.
+    Returns the filtered array."""
+    sos = sig.butter(order, cutoff, btype='highpass', output='sos', analog=True)
+    filtered = sig.sosfilter(sos, array)
+    return filtered
 
-def bessel_lowpass_filter(array, cutoff, fs, order=4):
-    b, a = bessel_lowpass(cutoff, fs, order=order)
-    y = sig.lfilter(b, a, data)
-    return y
+def bessel_highpass_filter(array, cutoff, sf, order=4):
+    """Implements scipy Bessel highpass filter at given cutoff
+    on an array sampled at sf sampling frequency. Default is 4th order.
+    Returns the filtered array."""       
+    sos = sig.bessel(order, cutoff, btype='highpass', output='sos', analog=True)
+    filtered = sig.sosfilter(sos, array)
+    return filtered
 
-def butter_highpass(cutoff, fs, order=2):
-    nyq=0.5*fs
-    normal_cutoff = cutoff / nyq
-    b, a = sig.butter(order, normal_cutoff, btype='high', analog=False)
-    return b, a
+def bandpass_filter(array, lowcut, highcut, sf, order=4):
+    """Implements scipy Butterworth bandpass filter at given a
+    lowcut as the minimum frequency allowed and highpass as the maximum
+    frequency allowed on an array sampled at sf sampling frequency. 
+    Default is 4th order. Returns the filtered array."""    
+    sos = sig.butter(order, [lowcut, highcut], btype='bandpass', output='sos', analog=True)
+    filtered = sig.sosfilter(b, a, data)
+    return filtered
 
-def butter_highpass_filter(array, cutoff, fs, order=2):
-    b, a = butter_highpass(cutoff, fs, order=order)
-    y = sig.filtfilt(b, a, data)
-    return y
-
-def butter_bandpass(lowcut, highcut, fs, order=5):
-    nyq = 0.5 * fs
-    low = lowcut / nyq
-    high = highcut / nyq
-    b, a = sig.butter(order, [low, high], btype='band')
-    return b, a
-
-def notch_filter(array, lowcut, highcut, fs, order=4):
-    b, a = butter_bandpass(lowcut, highcut, fs, order=order)
-    y = sig.lfilter(b, a, data)
-    return y
+def notch_filter(array, notch=50.0, window=1.0, sf, order=4):
+    """Implements a notch filter using scipy Butterworth bandstop 
+    cutting at a given frequency and a window around it on an array 
+    sampled at sf sampling frequency. Default is 4th order. 
+    Returns the filtered array."""
+    lowcut= notch - (window/2.0)
+    highcut= notch +(window/2.0)
+    sos = sig.butter(order, [lowcut, highcut], btype='bandstop', output='sos', analog=True)
+    filtered = sig.sosfilter(b, a, data)
+    return filtered
 
 # Downsampling functions
-
 def downsample(array, factor):
     """ downsample of a certain factor a 100 samples array downsampled by 2
     will be a 50 samples array of the same time duration"""
@@ -81,7 +87,6 @@ def downsample_to(array, out_size):
  
 
 # Finding thresholds without interpolation 
-
 def find_nearest_ind(array,value):
     """finds index of nearest value in a array"""
     array = np.asarray(array)
@@ -96,8 +101,20 @@ def find_nearest_sample(array,value):
 
 def find_incipit(array): return np.argmax(np.abs(np.diff(trace)))+1
 
-
+# General measures
+def coastline(channel):
+    """returns the coastline using the formula in Niknazar et al.2013  
+    only the array part of the neo analog signals is used"""
+    return np.sum(np.absolute(np.diff(channel.as_array()[:,0])))
 
 # Classes
+
+class Trace(np.array):
+
+class Recording(object):
+    """
+    Test
+    """
+    def __init__(self, traces, description='', **kwargs):
   
   
