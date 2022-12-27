@@ -11,6 +11,8 @@ more experiment specific derived classes.
 
 import numpy as np
 import scipy.signal as sig
+from numbers import Number
+
 
 # Classic filters
 def butter_lowpass_filter(array, cutoff, sf, order=4):
@@ -104,6 +106,22 @@ def find_nearest_sample(array,value):
 # Finding events
 def find_incipit(array): return np.argmax(np.abs(np.diff(trace)))+1
 
+def find_perc(trace,ind,percentage, t_to_bsl= 30,onset='onset'):
+    """finds a certain percentage of change for a given event, part_value 
+    should be between 0 and 1. For example find_part(trace,70,0.2) 
+    will find the index of the 20% value of the event in position 70 of trace. 
+    If onset='onset', the analysis is performed on the reversed array to make sure the peak comes 
+    before the baseline. t_to_bsl is the max number of points between-baseline and peak, 
+    too large may interfere with previous points, must be greater than 9"""
+    
+    if onset=='onset':event=trace[ind:ind-t_to_bsl:-1] #select the period before the peak but reversed limiting the search
+    if onset=='offset':event=trace[ind-t_to_bsl:ind] #select the period after the peak 
+    incipit= find_incipit(event) #incipit point to approximate baseline
+    bsl=np.mean(event[incipit+int(t_to_bsl/5.):]) #mean baseline
+    peak=trace[ind] #value of the peak for readability 
+    if bsl>peak: perc_value=bsl+(val_dist(bsl,peak)*percentage) #calculate the value of the trace at the desired percentage
+    if bsl<peak: perc_value=bsl-(val_dist(bsl,peak)*percentage)
+
 def find_art(array):
     """find large events that go above threshold on more than one channel at the time
     and returns their position. This only works with 16Channels array end files 
@@ -119,6 +137,56 @@ def find_art(array):
     
     
     return art_inds
+
+def find_events(trace, event=''):
+    """finds events in trace and returns index of the event max amplitude (peak or trough)."""
+    event_inds=[]
+    
+    event_types=['ap','epsc','epsp']
+    peak=np.greater #set the search for positive events
+    trough=np.less  #set the search for negative events
+    try: #checks the event type is supported
+        event_types.index(event.lower())
+    except ValueError:
+        print("This type of event is not supported. Events currently supported are:\n")
+        print("event_types")
+    reject=[]#testing only
+    #assign polarity (direction of event) and number of points describing the event based on common sampling rates
+    if event.lower()=='ap':
+        event_points=4 #number of points describing the event, high numbers will reduce false positive but increase false negatives
+        polarity= peak #search for a max or a min
+        #find all possible peaks 
+        event_inds=(sig.argrelextrema(trace,polarity, axis=0, order=(event_points), mode='clip'))
+        event_inds=event_inds[0]
+        #threshold filter
+        event_inds=event_inds[trace[event_inds]>(np.mean(trace)+np.std(trace))]#event_inds[trace[event_inds]>(np.mean(trace)+np.std(trace))]
+        
+    elif event.lower()=='epsc':
+        event_points=20 #number of points describing the event, high numbers will reduce false positive but increase false negatives
+        polarity= trough #search for a max or a min
+        #find all possible peaks 
+        event_inds=(sig.argrelextrema(trace,polarity, axis=0, order=(event_points), mode='clip'))
+        event_inds=event_inds[0]
+        #threshold filter
+        #event_inds=event_inds[trace[event_inds]<(np.mean(trace)-(1*np.std(trace)))]
+        x=np.arange(1000)
+        trise=20.0;tdecay=200.0
+        y=-1.0*(1-np.exp(-x/trise))*np.exp(-x/tdecay)#the argmin is 48
+        reject=[]
+        for i in event_inds:
+            if abs(trace[i]-trace[i-int(event_points*0.4)])<=abs(trace[i]-trace[i+int(event_points*0.4)]): #find_perc(trace,i,0.5, onset='onset')
+                reject.append(i)
+        return event_inds, reject
+       
+    elif event.lower()=='epsp':
+        event_points=80 #number of points describing the event, high numbers will reduce false positive but increase false negatives
+        polarity= peak #search for a max or a min
+        #find all possible peaks 
+        event_inds=(sig.argrelextrema(trace,polarity, axis=0, order=(event_points), mode='wrap'))
+        event_inds=event_inds[0]
+        #threshold filter
+    return event_inds
+
 
 # General measures
 def coastline(channel):
@@ -152,12 +220,13 @@ def plot_spikes(array,spk_ind=None,freq=200):
 
 # Classes
 class Trace(np.ndarray):
-    def __new__(cls, input_array, sampling_frequency=float, signal_units=str, pre_filtered=tuple):
+    def __new__(cls, input_array, sampling_frequency=1., signal_units=str, channel_id=None, pre_filtered=None):
         # Create the ndarray instance
         obj = np.asarray(input_array).view(cls)
         # Add the new attribute to the created instance
         obj.sampling_frequency = sampling_frequency
         obj.signal_units= signal_units
+        obj.channel_id=channel_id
         obj.pre_filtered=pre_filtered
         
         # Return the newly created object
@@ -168,16 +237,53 @@ class Trace(np.ndarray):
         # Set the default value for the sampling_frequency attribute
         self.sampling_frequency = getattr(obj, 'sampling_frequency', float)
         self.signal_units = getattr(obj, 'signal_units', str)
-        self.pre_filtered = getattr(obj, 'pre_filtered', list)
+        self.channel_id = getattr(obj, 'channel_id', None)
+        self.pre_filtered = getattr(obj, 'pre_filtered', None)
 
     def t_axis(self, start=0.0):
         return np.linspace(start,self.size/self.sampling_frequency,self.size)
 
 
-class Recording(object):
+class BaseRecording(object):
     """
-    Test
+    To be described
+    traces must be float in a list, a tuple, a numpy.ndarray, a Trace object or a list of Trace Objects
+
     """
-    def __init__(self, traces, rec_id='', date_time='',description='', **kwargs):
+    infos={}
+    def __init__(self, traces, sampling_frequency=None, 
+    signal_units=None,channel_id=None, pre_filtered=None,rec_id='', 
+    date_time='',description='', **kwargs):
+        
+        if isinstance(traces,Trace):
+            self.traces=traces
+        elif isinstance(traces,list) or isinstance(traces,tuple) or isinstance(traces,np.ndarray):
+            if all(isinstance(x, Number) for x in traces):
+                self.traces=Trace(traces)
+                if sampling_frequency!=None: self.traces.sampling_frequency=sampling_frequency
+                if signal_units!=None: self.traces.signal_units=signal_units
+                if channel_id!=None: self.traces.channel_id=channel_id
+                if pre_filtered!=None: self.traces.pre_filtered=pre_filtered
+            elif all(isinstance(y, Trace) for y in traces):
+                self.traces={}
+                assigned_channel=0
+                for trace in traces:
+                    if trace.channel_id==None:
+                        self.traces["_"+str(assigned_channel)]=trace
+                    else: self.traces[str(trace.channel_id)]=trace
+        else:
+            print("The traces argument must be a list, a tuple, a numpy.ndarray, a Trace object or a list of Trace Objects")
+
+
+
+
+        self.infos = kwargs
+
+
+
+
+    def get_info(self, key):
+        if key in self.infos.keys(): return self.infos.get(key)
+        else: return False
   
   
