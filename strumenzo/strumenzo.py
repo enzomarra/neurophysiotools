@@ -53,7 +53,7 @@ def bandpass_filter(array, lowcut, highcut, sf, order=4):
     frequency allowed on an array sampled at sf sampling frequency. 
     Default is 4th order. Returns the filtered array."""    
     sos = sig.butter(order, [lowcut, highcut], btype='bandpass', output='sos', analog=True)
-    filtered = sig.sosfilter(sos, data)
+    filtered = sig.sosfilter(sos, array)
     return filtered
 
 def notch_filter(array, notch=50.0, window=1.0, sf, order=4):
@@ -64,7 +64,7 @@ def notch_filter(array, notch=50.0, window=1.0, sf, order=4):
     lowcut= notch - (window/2.0)
     highcut= notch +(window/2.0)
     sos = sig.butter(order, [lowcut, highcut], btype='bandstop', output='sos', analog=True)
-    filtered = sig.sosfilter(sos, data)
+    filtered = sig.sosfilter(sos, array)
     return filtered
 
 def running_mean(array,window):
@@ -247,36 +247,35 @@ class Trace(np.ndarray):
 class BaseRecording(object):
     """
     To be described
-    traces must be float in a list, a tuple, a numpy.ndarray, a Trace object or a list of Trace Objects
+    signals must be float in a list, a tuple, a numpy.ndarray, a Trace object or a list of Trace Objects
 
     """
     infos={}
-    def __init__(self, traces, sampling_frequency=None, 
+    def __init__(self, signals, sampling_frequency=None, 
     signal_units=None,channel_id=None, pre_filtered=None,rec_id='', 
     date_time='',description='', **kwargs):
         
-        if isinstance(traces,Trace):
-            self.traces=traces
-        elif isinstance(traces,list) or isinstance(traces,tuple) or isinstance(traces,np.ndarray):
-            if all(isinstance(x, Number) for x in traces):
-                self.traces=Trace(traces)
-                if sampling_frequency!=None: self.traces.sampling_frequency=sampling_frequency
-                if signal_units!=None: self.traces.signal_units=signal_units
-                if channel_id!=None: self.traces.channel_id=channel_id
-                if pre_filtered!=None: self.traces.pre_filtered=pre_filtered
-            elif all(isinstance(y, Trace) for y in traces):
-                self.traces={}
+        if isinstance(signals,Trace):
+            self.signals=signals
+        elif isinstance(signals,list) or isinstance(signals,tuple) or isinstance(signals,np.ndarray):
+            if all(isinstance(x, Number) for x in signals):
+                self.signals=Trace(signals)
+                if sampling_frequency!=None: self.signals.sampling_frequency=sampling_frequency
+                if signal_units!=None: self.signals.signal_units=signal_units
+                if channel_id!=None: self.signals.channel_id=channel_id
+                if pre_filtered!=None: self.signals.pre_filtered=pre_filtered
+            elif all(isinstance(y, Trace) for y in signals):
+                self.signals={}
                 assigned_channel=0
-                for trace in traces:
+                for trace in signals:
                     if trace.channel_id==None:
-                        self.traces["_"+str(assigned_channel)]=trace
-                    else: self.traces[str(trace.channel_id)]=trace
+                        self.signals["_"+str(assigned_channel)]=trace
+                    else: self.signals[str(trace.channel_id)]=trace
         else:
-            print("The traces argument must be a list, a tuple, a numpy.ndarray, a Trace object or a list of Trace Objects")
-
-
-
-
+            print("The signals argument must be a list, a tuple, a numpy.ndarray, a Trace object or a list of Trace Objects")
+        
+        self.date_time=date_time
+        self.description=description
         self.infos = kwargs
 
 
