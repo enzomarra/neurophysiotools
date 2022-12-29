@@ -6,10 +6,10 @@ This is a collection of useful functions and objects I have used in my analyses 
 The Trace class is a 1D numpy array with a few extra ephys related attributes and methods.
 The Recording class is an experiment/recording session containing one or more traces and additional
 information on the acquisition and experimental condition. Recording is intended as a base to create
-more experiment specific derived classes.
+more experiment specific derived classes. Recommended import neurophysiotools as npt 
 """
 
-#TO DO CHANGE NAME? import enzodatatools as edt
+
 import numpy as np
 import pandas as pd
 import scipy.signal as sig
