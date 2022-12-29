@@ -9,7 +9,7 @@ information on the acquisition and experimental condition. Recording is intended
 more experiment specific derived classes. Recommended import neurophysiotools as nt 
 """
 
-
+#%%
 import numpy as np
 import pandas as pd
 import scipy.signal as sig
@@ -27,7 +27,7 @@ def butter_lowpass_filter(array, cutoff, sf, order=4):
     Output:
         filtered: the array of data after being filtered with the lowpass Butterworth filter. This will have the same shape as the input array."""
     sos = sig.butter(order, cutoff, fs=sf, btype='lowpass',  output='sos', analog=False)
-    filtered = sig.sosfilter(sos, array)
+    filtered = sig.sosfilt(sos, array)
     return filtered
 
 def bessel_lowpass_filter(array, cutoff, sf, order=4):
@@ -40,7 +40,7 @@ def bessel_lowpass_filter(array, cutoff, sf, order=4):
     Output:
         filtered: the array of data after being filtered with the lowpass Bessel filter. This will have the same shape as the input array."""   
     sos = sig.bessel(order, cutoff, sfs=sf, btype='lowpass', output='sos', analog=False)
-    filtered = sig.sosfilter(sos, array)
+    filtered = sig.sosfilt(sos, array)
     return filtered
 
 def butter_highpass_filter(array, cutoff, sf, order=2):
@@ -53,7 +53,7 @@ def butter_highpass_filter(array, cutoff, sf, order=2):
     Output:
         filtered: the array of data after being filtered with the highpass Butterworth filter. This will have the same shape as the input array."""
     sos = sig.butter(order, cutoff, fs=sf, btype='highpass', output='sos', analog=False)
-    filtered = sig.sosfilter(sos, array)
+    filtered = sig.sosfilt(sos, array)
     return filtered
 
 def bessel_highpass_filter(array, cutoff, sf, order=4):
@@ -66,7 +66,7 @@ def bessel_highpass_filter(array, cutoff, sf, order=4):
     Output:
         filtered: the array of data after being filtered with the highpass Bessel filter. This will have the same shape as the input array."""   
     sos = sig.bessel(order, cutoff, fs=sf, btype='highpass',  output='sos', analog=False)
-    filtered = sig.sosfilter(sos, array)
+    filtered = sig.sosfilt(sos, array)
     return filtered
 
 def bandpass_filter(array, lowcut, highcut, sf, order=4):
@@ -80,7 +80,7 @@ def bandpass_filter(array, lowcut, highcut, sf, order=4):
     Output:
         filtered: the array of data after being filtered with the bandpass Butterworth filter. This will have the same shape as the input array."""    
     sos = sig.butter(order,  [lowcut, highcut], fs=sf, btype='bandpass', output='sos', analog=False)
-    filtered = sig.sosfilter(sos, array)
+    filtered = sig.sosfilt(sos, array)
     return filtered
 
 def notch_filter(array, sf, notch=50.0, window=1.0,  order=4):
@@ -96,7 +96,7 @@ def notch_filter(array, sf, notch=50.0, window=1.0,  order=4):
     lowcut= notch - (window/2.0)
     highcut= notch +(window/2.0)
     sos = sig.butter(order, [lowcut, highcut], fs=sf,  btype='bandstop', output='sos', analog=False)
-    filtered = sig.sosfilter(sos, array)
+    filtered = sig.sosfilt(sos, array)
     return filtered
 
 def running_mean(array,window):
@@ -294,6 +294,9 @@ def smooth_by_2(func):
     return inner
 
 
+#MAKE A TO TRACE DECORATOR
+
+
 # Classes
 class Trace(np.ndarray):
     """The Trace class is a subclass of numpy.ndarray, meaning it is a modified version of a numpy array that has additional attributes and methods.
@@ -301,7 +304,7 @@ class Trace(np.ndarray):
     The __new__ method takes in the following arguments:
         cls: a reference to the class itself
         input_array: the data that will be stored in the Trace object, which is passed to the np.asarray function to create a numpy array
-        sampling_frequency: the sampling frequency of the data (default value is 1)
+        sampling_rate: the sampling frequency of the data (default value is 1)
         signal_units: the units of the data (default value is an empty string)
         channel_id: an identifier for the channel (default value is None)
         pre_filtered: a boolean value indicating whether the data has been filtered (default value is None)
@@ -315,11 +318,11 @@ class Trace(np.ndarray):
     If neither of these conditions are met, the key for the signal data is set to 'signal'.
     The to_df method returns a pandas DataFrame representation of the Trace object, created from the dictionary returned by the to_dict method."""
 
-    def __new__(cls, input_array, sampling_frequency=1., signal_units=str, channel_id=None, pre_filtered=None):
+    def __new__(cls, input_array, sampling_rate=1., signal_units=str, channel_id=None, pre_filtered=None):
         # Create the ndarray instance
         obj = np.asarray(input_array).view(cls)
         # Add the new attribute to the created instance
-        obj.sampling_frequency = sampling_frequency
+        obj.sampling_rate = sampling_rate
         obj.signal_units= signal_units
         obj.channel_id=channel_id
         obj.pre_filtered=pre_filtered
@@ -329,14 +332,14 @@ class Trace(np.ndarray):
 
     def __array_finalize__(self, obj):
         if obj is None: return
-        # Set the default value for the sampling_frequency attribute
-        self.sampling_frequency = getattr(obj, 'sampling_frequency', float)
+        # Set the default value for the sampling_rate attribute
+        self.sampling_rate = getattr(obj, 'sampling_rate', float)
         self.signal_units = getattr(obj, 'signal_units', str)
         self.channel_id = getattr(obj, 'channel_id', None)
         self.pre_filtered = getattr(obj, 'pre_filtered', None)
 
     def t_axis(self, start=0.0):
-        return np.linspace(start,self.size/self.sampling_frequency,self.size)
+        return np.linspace(start,self.size/self.sampling_rate,self.size)
 
     def to_dict(self):
         if self.channel_id!=None:
@@ -348,6 +351,9 @@ class Trace(np.ndarray):
 
     def to_df(self):
         return pd.DataFrame.from_dict(self.to_dict())
+    
+    def downsample(self, factor):
+        return downsample(self,factor)
 
     
 
@@ -361,7 +367,7 @@ class BaseRecording(object):
     The class provides a method for accessing the values in the information dictionary.
 
     :param signals: The signals to be stored in the recording object. Must be float in a list, tuple, numpy.ndarray, Trace object, or list of Trace objects.
-    :param sampling_frequency: (optional) The sampling frequency for the signals, if provided as a list, tuple, or numpy.ndarray.
+    :param sampling_rate: (optional) The sampling frequency for the signals, if provided as a list, tuple, or numpy.ndarray.
     :param signal_units: (optional) The units of the signals, if provided as a list, tuple, or numpy.ndarray.
     :param channel_id: (optional) The channel id for the signals, if provided as a list, tuple, or numpy.ndarray.
     :param pre_filtered: (optional) A boolean indicating whether the signals have been pre-filtered, if provided as a list, tuple, or numpy.ndarray.
@@ -372,7 +378,7 @@ class BaseRecording(object):
     """
 
     infos={}
-    def __init__(self, signals, sampling_frequency=None, 
+    def __init__(self, signals, sampling_rate=None, 
     signal_units=None,channel_id=None, pre_filtered=None,rec_id='', 
     date_time='',description='', **kwargs):
         
@@ -381,7 +387,7 @@ class BaseRecording(object):
         elif isinstance(signals,list) or isinstance(signals,tuple) or isinstance(signals,np.ndarray):
             if all(isinstance(x, Number) for x in signals):
                 self.signals=Trace(signals)
-                if sampling_frequency!=None: self.signals.sampling_frequency=sampling_frequency
+                if sampling_rate!=None: self.signals.sampling_rate=sampling_rate
                 if signal_units!=None: self.signals.signal_units=signal_units
                 if channel_id!=None: self.signals.channel_id=channel_id
                 if pre_filtered!=None: self.signals.pre_filtered=pre_filtered
@@ -397,6 +403,7 @@ class BaseRecording(object):
         else:
             print("The signals argument must be a list, a tuple, a numpy.ndarray, a Trace object or a list of Trace Objects")
         
+        self.rec_id=rec_id
         self.date_time=date_time
         self.description=description
         self.infos = kwargs
@@ -407,3 +414,5 @@ class BaseRecording(object):
         else: return False
   
   
+
+# %%
