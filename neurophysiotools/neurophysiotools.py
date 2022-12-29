@@ -6,7 +6,7 @@ This is a collection of useful functions and objects I have used in my analyses 
 The Trace class is a 1D numpy array with a few extra ephys related attributes and methods.
 The Recording class is an experiment/recording session containing one or more traces and additional
 information on the acquisition and experimental condition. Recording is intended as a base to create
-more experiment specific derived classes. Recommended import neurophysiotools as npt 
+more experiment specific derived classes. Recommended import neurophysiotools as nt 
 """
 
 
@@ -297,7 +297,6 @@ def smooth_by_2(func):
 # Classes
 class Trace(np.ndarray):
     """The Trace class is a subclass of numpy.ndarray, meaning it is a modified version of a numpy array that has additional attributes and methods.
-
     The __new__ method is called when the object is first created and is responsible for creating the object and adding additional attributes to it. 
     The __new__ method takes in the following arguments:
         cls: a reference to the class itself
@@ -306,18 +305,14 @@ class Trace(np.ndarray):
         signal_units: the units of the data (default value is an empty string)
         channel_id: an identifier for the channel (default value is None)
         pre_filtered: a boolean value indicating whether the data has been filtered (default value is None)
-
     The __array_finalize__ method is called when the object is created as a view of another object, such as when slicing. 
     It sets default values for the attributes that may not have been specified in the original object.
-
     The t_axis method returns a time axis for the data based on the sampling frequency and the size of the Trace object. 
     The optional start parameter allows the user to specify a starting time for the axis (default value is 0).
-
     The to_dict method returns a dictionary representation of the Trace object, with keys for the time axis and the signal data. 
     If the channel_id attribute is not None, it is used as the key for the signal data. 
     If the signal_units attribute is not an empty string, it is used as the key for the signal data. 
     If neither of these conditions are met, the key for the signal data is set to 'signal'.
-
     The to_df method returns a pandas DataFrame representation of the Trace object, created from the dictionary returned by the to_dict method."""
 
     def __new__(cls, input_array, sampling_frequency=1., signal_units=str, channel_id=None, pre_filtered=None):
@@ -396,7 +391,9 @@ class BaseRecording(object):
                 for trace in signals:
                     if trace.channel_id==None:
                         self.signals["_"+str(assigned_channel)]=trace
-                    else: self.signals[str(trace.channel_id)]=trace
+                        assigned_channel+=1
+                    else: 
+                        self.signals[str(trace.channel_id)]=trace
         else:
             print("The signals argument must be a list, a tuple, a numpy.ndarray, a Trace object or a list of Trace Objects")
         

@@ -9,7 +9,7 @@ To install NeurophysioTools, use pip:
 
 Usage
 
-    import neurophysiotools as npt
+    import neurophysiotools as nt
 
 ## Use the provided functions and classes for analyzing neurophysiological data
 
