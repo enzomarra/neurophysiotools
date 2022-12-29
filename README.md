@@ -5,20 +5,22 @@ Installation
 
 To install NeurophysioTools, use pip:
 
-pip install neurophysiotools
+    pip install neurophysiotools
 
 Usage
 
-import neurophysiotools as npt
+    import neurophysiotools as npt
 
-# Use the provided functions and classes for analyzing neurophysiological data
+## Use the provided functions and classes for analyzing neurophysiological data
 
-Classes
+### Functions
+
+### Classes
 
     Trace: Subclass of numpy.ndarray for storing and analyzing 1D neural signals.
     BaseRecording: Base Class for storing traces and additional information about a recording. 
 
-Contributions
+### Contributions
 
 Pull requests and suggestions for new features are welcome. Please follow the guidelines outlined in the contribution guidelines.
 License
