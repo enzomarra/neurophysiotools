@@ -26,7 +26,7 @@ def butter_lowpass_filter(array, cutoff, sf, order=4):
         order: the order of the filter. This should be an integer. The default value is 4.
     Output:
         filtered: the array of data after being filtered with the lowpass Butterworth filter. This will have the same shape as the input array."""
-    sos = sig.butter(order, cutoff, btype='lowpass', sf, output='sos', analog=False)
+    sos = sig.butter(order, cutoff, sf, btype='lowpass',  output='sos', analog=False)
     filtered = sig.sosfilter(sos, array)
     return filtered
 
@@ -39,7 +39,7 @@ def bessel_lowpass_filter(array, cutoff, sf, order=4):
         order: the order of the filter. This should be an integer. The default value is 4.
     Output:
         filtered: the array of data after being filtered with the lowpass Bessel filter. This will have the same shape as the input array."""   
-    sos = sig.bessel(order, cutoff, btype='lowpass', sf, output='sos', analog=False)
+    sos = sig.bessel(order, cutoff, sf, btype='lowpass', output='sos', analog=False)
     filtered = sig.sosfilter(sos, array)
     return filtered
 
@@ -52,7 +52,7 @@ def butter_highpass_filter(array, cutoff, sf, order=2):
         order: the order of the filter. This should be an integer. The default value is 4.
     Output:
         filtered: the array of data after being filtered with the highpass Butterworth filter. This will have the same shape as the input array."""
-    sos = sig.butter(order, cutoff, btype='highpass', sf, output='sos', analog=False)
+    sos = sig.butter(order, cutoff, sf, btype='highpass', output='sos', analog=False)
     filtered = sig.sosfilter(sos, array)
     return filtered
 
@@ -83,7 +83,7 @@ def bandpass_filter(array, lowcut, highcut, sf, order=4):
     filtered = sig.sosfilter(sos, array)
     return filtered
 
-def notch_filter(array, notch=50.0, window=1.0, sf, order=4):
+def notch_filter(array, sf, notch=50.0, window=1.0,  order=4):
     """This function applies a notch filter to a given array of data.
     Inputs:
         array: the array of data to be filtered. This should be a 1D numpy array.
