@@ -39,7 +39,7 @@ def bessel_lowpass_filter(array, cutoff, sf, order=4):
         order: the order of the filter. This should be an integer. The default value is 4.
     Output:
         filtered: the array of data after being filtered with the lowpass Bessel filter. This will have the same shape as the input array."""   
-    sos = sig.bessel(order, cutoff, sfs=sf, btype='lowpass', output='sos', analog=False)
+    sos = sig.bessel(order, cutoff, fs=sf, btype='lowpass', output='sos', analog=False)
     filtered = sig.sosfilt(sos, array)
     return filtered
 
@@ -294,7 +294,23 @@ def smooth_by_2(func):
     return inner
 
 
-#MAKE A TO TRACE DECORATOR
+def array2trace(func):
+    """This function is a decorator that converts the array 
+    output of a function to a Trace object with the same attributes.
+    Inputs:
+        func: the function whose output whose output will be converterd to Trace
+    Output:
+        inner: a new function that wraps the original function and convert its output to trace.
+    The inner function of the decorator takes an arbitrary number of arguments using the *args 
+    syntax and passes them to the original function """
+    def converter(*args):
+        trace=[x for x in args if isinstance(x,Trace)]
+        return Trace(func(*args),**trace[0].__dict__)
+    return converter
+
+#MAKE A TO TRACE DECORATOR that takes agrument
+#inside trace make a method that returns all the inputs other 
+#than the array
 
 
 # Classes
@@ -316,7 +332,9 @@ class Trace(np.ndarray):
     If the channel_id attribute is not None, it is used as the key for the signal data. 
     If the signal_units attribute is not an empty string, it is used as the key for the signal data. 
     If neither of these conditions are met, the key for the signal data is set to 'signal'.
-    The to_df method returns a pandas DataFrame representation of the Trace object, created from the dictionary returned by the to_dict method."""
+    The to_df method returns a pandas DataFrame representation of the Trace object, created from the dictionary returned by the to_dict method.
+    The array2trace decorator is used to get methods using standard scipy function to return a trace instead of an array."""
+    #TO DO DOCUMENT THE NEW METHODS
 
     def __new__(cls, input_array, sampling_rate=1., signal_units=str, channel_id=None, pre_filtered=None):
         # Create the ndarray instance
@@ -326,7 +344,6 @@ class Trace(np.ndarray):
         obj.signal_units= signal_units
         obj.channel_id=channel_id
         obj.pre_filtered=pre_filtered
-        
         # Return the newly created object
         return obj
 
@@ -337,6 +354,9 @@ class Trace(np.ndarray):
         self.signal_units = getattr(obj, 'signal_units', str)
         self.channel_id = getattr(obj, 'channel_id', None)
         self.pre_filtered = getattr(obj, 'pre_filtered', None)
+
+    def __array_wrap__(self, out_arr, context=None):
+        return super().__array_wrap__(self, out_arr, context)
 
     def t_axis(self, start=0.0):
         return np.linspace(start,self.size/self.sampling_rate,self.size)
@@ -351,9 +371,27 @@ class Trace(np.ndarray):
 
     def to_df(self):
         return pd.DataFrame.from_dict(self.to_dict())
-    
+
     def downsample(self, factor):
-        return downsample(self,factor)
+        """Downsample the Trace by a given factor and changes Trace sampling rate to match.
+        factor (int): The factor by which to downsample the array.
+        Returns: out  The downsampled Trace with adjested sampling_rate but no change in pre_filter info."""
+        out= Trace(downsample(self,factor),**self.__dict__)
+        out.sampling_rate=self.sampling_rate/factor
+        return out
+
+    def downsample_to(self, outlength):
+        """Downsample the Trace to a given length and changes Trace sampling rate to match.
+        factor (int): The factor by which to downsample the array.
+        Returns: out  The downsampled Trace with adjested sampling_rate but no change in pre_filter info."""
+        out= Trace(downsample_to(self,outlength),**self.__dict__)
+        out.sampling_rate=self.sampling_rate/int(np.floor(len(self)/outlength))
+        return out
+
+
+    @array2trace
+    def bessel_lowpass(self, cutoff):
+        return bessel_lowpass_filter(self, cutoff, sf=self.sampling_rate, order=4)
 
     
 
