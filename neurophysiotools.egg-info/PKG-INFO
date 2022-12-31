@@ -12,8 +12,8 @@ License: MIT license
 Classifier: Intended Audience :: Science/Research
 Classifier: Programming Language :: Python
 Classifier: License :: OSI Approved :: MIT License
-Classifier: Topic :: Scientific/Engineering :: Neuroscience
-Classifier: Operating System :: Windows
+Classifier: Topic :: Scientific/Engineering
+Classifier: Operating System :: Microsoft :: Windows
 Classifier: Operating System :: Unix
 Classifier: Operating System :: MacOS
 License-File: LICENSE.md
