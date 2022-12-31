@@ -15,6 +15,7 @@ from os import listdir
 import numpy as np
 import scipy.signal as sig
 from numbers import Number
+import warnings
 
 
 
@@ -240,8 +241,8 @@ def get_freq_band(freq_val, band_dict={}):
     'Beta': [13, 20]
     'Low Gamma': [20, 50]
     'Hi Gamma': [50, infinity]
-If the input dictionary band_dict is not provided, the function will use the default dictionary. 
-If the input frequency value is within the range, the function returns the key (a string)."""
+    If the input dictionary band_dict is not provided, the function will use the default dictionary. 
+    If the input frequency value is within the range, the function returns the key (a string)."""
 
     if band_dict=={}: #this define default bands, if different ranges are required use band_dict
         band_dict={'Infra': [-np.inf,0.1],
@@ -411,7 +412,7 @@ class Trace(np.ndarray):
         sampling_rate: the sampling frequency of the data (default value is 1)
         signal_units: the units of the data (default value is an empty string)
         channel_id: an identifier for the channel (default value is None)
-        pre_filtered: a boolean value indicating whether the data has been filtered (default value is None)
+        pre_filtered: value indicating whether the data has been filtered if list or tuple are given post-filtering will be adjusted (default value is None)
     The __array_finalize__ method is called when the object is created as a view of another object, such as when slicing. 
     It sets default values for the attributes that may not have been specified in the original object.
     The t_axis method returns a time axis for the data based on the sampling frequency and the size of the Trace object. 
@@ -478,9 +479,40 @@ class Trace(np.ndarray):
 
 
     @array2trace
-    def bessel_lowpass(self, cutoff):
-        return bessel_lowpass_filter(self, cutoff, sf=self.sampling_rate, order=4)
+    def lowpass_filter(self, cutoff):
+        """Returns a Trace lowpass filtered at the cutoff input using a 4th order
+        Butterworth filter see butter_lowpass_filter function. 
+        If the cutoff is greater than the pre_filtered attribute highest value 
+        a warning is issued but the signal will still be filtered to trigger the scipy errors."""
+        if self.pre_filtered!=None:
+            if cutoff> np.max(self.pre_filtered):
+                warnings.warn('Cutoff value greater than prefiltered.')    
+        return butter_lowpass_filter(self, cutoff, sf=self.sampling_rate, order=4)
 
+    @array2trace
+    def highpass_filter(self, cutoff):
+        """Returns a Trace highpass filtered at the cutoff input using a 4th order
+        Butterworth filter see butter_highpass_filter function. 
+        If the cutoff is lesser than the pre_filtered attribute lowest value 
+        a warning issued but the signal will still be filtered to trigger the scipy errors."""
+        if self.pre_filtered!=None:
+            if cutoff< np.min(self.pre_filtered):
+                warnings.warn('Cutoff value lower than prefiltered.')
+        
+        return butter_highpass_filter(self, cutoff, sf=self.sampling_rate, order=4)
+    
+    @array2trace
+    def smooth(self, window):
+        """This function applies a running mean filter to a given array of data.
+        Inputs:
+        array: the array of data to be filtered. This should be a 1D numpy array.
+        window: the size of the window for the running mean filter. This should be an integer.
+        Output:
+        run_mean: the array of data after being filtered with the running mean filter. This will have the same shape as the input array.""" 
+
+        return running_mean(self, window)
+        
+        
     
 
 
