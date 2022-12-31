@@ -1,0 +1,19 @@
+Metadata-Version: 2.1
+Name: neurophysiotools
+Version: 0.0.1
+Summary: NeurophysioTools: tools for Neurophysiological signals in Python
+Home-page: https://github.com/enzomarra/neurophysiotools
+Download-URL: https://github.com/enzomarra/neurophysiotools
+Author: Vincenzo Marra
+Author-email: raphaelvallat9@gmail.com
+Maintainer: Vincenzo Marra
+Maintainer-email: raphaelvallat9@gmail.com
+License: MIT license
+Classifier: Intended Audience :: Science/Research
+Classifier: Programming Language :: Python
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Topic :: Scientific/Engineering :: Neuroscience
+Classifier: Operating System :: Windows
+Classifier: Operating System :: Unix
+Classifier: Operating System :: MacOS
+License-File: LICENSE.md
