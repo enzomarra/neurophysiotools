@@ -7,12 +7,14 @@ The Trace class is a 1D numpy array with a few extra ephys related attributes an
 The Recording class is an experiment/recording session containing one or more traces and additional
 information on the acquisition and experimental condition. Recording is intended as a base to create
 more experiment specific derived classes. Recommended import neurophysiotools as nt 
-"""
+ The modules Pandas is only required for Welch analysis and plotly + pandas for the spectrogramm.
 
+"""
+from os import listdir
 import numpy as np
-import pandas as pd
 import scipy.signal as sig
 from numbers import Number
+
 
 
 # Collection of filters
@@ -269,10 +271,21 @@ def welch_an(signal,sf, win_scale=4., bands=None):
         band_dict=bands
     else: 
         band_dict={}
-
     win=win_scale*sf # Define window length (default 4 s)
     freqs, psd = sig.welch(signal, sf, nperseg=win)
-    welch_df = pd.DataFrame({'Frequency':freqs, 'Power':psd})
+    
+
+    
+    try: 
+        welch_df = pd.DataFrame({'Frequency':freqs, 'Power':psd})
+    except:
+            try:
+                import pandas as pd
+                welch_df = pd.DataFrame({'Frequency':freqs, 'Power':psd})
+            except ImportError:
+                install_requires.append("pandas for this function")    
+    
+    
     if bands!=None:
         welch_df['Bands'] = welch_df['Frequency'].apply(get_freq_band,band_dict=band_dict)
 
@@ -287,8 +300,11 @@ def plot_welch(signal,sf, win_scale=4., bands=None):
     try: 
         welch_fig = px.line(welch_df, x='Frequency', y='Power',title='Welch\'s Power spectral Density')
     except:
-        import plotly.express as px
-        welch_fig = px.line(welch_df, x='Frequency', y='Power',title='Welch\'s Power spectral Density')
+            try:
+                import plotly.express as px
+                welch_fig = px.line(welch_df, x='Frequency', y='Power',title='Welch\'s Power spectral Density')
+            except ImportError:
+                install_requires.append("plotly for this function")
     
     
     if 'Bands' in welch_df.columns:
@@ -311,14 +327,10 @@ def batch_open(folder_name, extension='.'):
     Output:
         rec_list: a list of files in the given folder with the given extension. This will be a list of strings.
     This function first uses the listdir() function to generate a list of all the files in the given folder. 
-    It then filters this list to only include files with the desired extension, and returns this filtered list as the output of the function. 
-    If the listdir() function is not found in the current environment, it is imported from the os library."""
-
-    try: 
-        all_files=listdir(folder_name)
-    except:
-        from os import listdir
-        all_files=listdir(folder_name)
+    It then filters this list to only include files with the desired extension, 
+    and returns this filtered list as the output of the function."""
+     
+    all_files=listdir(folder_name)
 
     rec_list=[]
     for file in all_files:
