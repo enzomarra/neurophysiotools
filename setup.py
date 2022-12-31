@@ -9,7 +9,7 @@ MAINTAINER_EMAIL = "raphaelvallat9@gmail.com"
 URL = "https://github.com/enzomarra/neurophysiotools"
 LICENSE = "MIT license"
 DOWNLOAD_URL = "https://github.com/enzomarra/neurophysiotools"
-VERSION = "0.1.0"
+VERSION = "0.0.1"
 PACKAGE_DATA = {}
 
 try:
@@ -59,7 +59,7 @@ if __name__ == "__main__":
             "Intended Audience :: Science/Research",
             "Programming Language :: Python",
             "License :: OSI Approved :: MIT License",
-            "Topic :: Scientific/Engineering :: Neuroscience",
+            "Topic :: Scientific/Engineering",
             "Operating System :: Windows",
             "Operating System :: Unix",
             "Operating System :: MacOS",

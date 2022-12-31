@@ -10,6 +10,7 @@ more experiment specific derived classes. Recommended import neurophysiotools as
  The modules Pandas is only required for Welch analysis and plotly + pandas for the spectrogramm.
 
 """
+
 from os import listdir
 import numpy as np
 import scipy.signal as sig
@@ -283,7 +284,7 @@ def welch_an(signal,sf, win_scale=4., bands=None):
                 import pandas as pd
                 welch_df = pd.DataFrame({'Frequency':freqs, 'Power':psd})
             except ImportError:
-                install_requires.append("pandas for this function")    
+                print("Pandas is required for this function")    
     
     
     if bands!=None:
@@ -304,7 +305,7 @@ def plot_welch(signal,sf, win_scale=4., bands=None):
                 import plotly.express as px
                 welch_fig = px.line(welch_df, x='Frequency', y='Power',title='Welch\'s Power spectral Density')
             except ImportError:
-                install_requires.append("plotly for this function")
+                print("The plotly is required for this function")
     
     
     if 'Bands' in welch_df.columns:
