@@ -60,7 +60,7 @@ if __name__ == "__main__":
             "Programming Language :: Python",
             "License :: OSI Approved :: MIT License",
             "Topic :: Scientific/Engineering",
-            "Operating System :: Windows",
+            "Operating System :: Microsoft :: Windows",
             "Operating System :: Unix",
             "Operating System :: MacOS",
         ],
