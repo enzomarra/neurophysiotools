@@ -9,7 +9,6 @@ information on the acquisition and experimental condition. Recording is intended
 more experiment specific derived classes. Recommended import neurophysiotools as nt 
 """
 
-#%%
 import numpy as np
 import pandas as pd
 import scipy.signal as sig
@@ -227,6 +226,81 @@ def coastline(array):
     and the sum of these values is returned as the output of the function."""
     return np.sum(np.absolute(np.diff(array)))
 
+def get_freq_band(freq_val, band_dict={}):
+    """Takes a frequency value and a dictionary of frequency bands as input 
+    and returns the frequency band as string that the input frequency value belongs to. 
+    The function has a default dictionary of frequency bands, which are defined as follows:
+    'Infra': [-infinity, 0.1]
+    'Delta': [0.1, 4]
+    'Theta': [4, 8]
+    'Alpha': [8, 13]
+    'Beta': [13, 20]
+    'Low Gamma': [20, 50]
+    'Hi Gamma': [50, infinity]
+If the input dictionary band_dict is not provided, the function will use the default dictionary. 
+If the input frequency value is within the range, the function returns the key (a string)."""
+
+    if band_dict=={}: #this define default bands, if different ranges are required use band_dict
+        band_dict={'Infra': [-np.inf,0.1],
+                'Delta':[0.1,4.],
+                'Theta':[4.,8.],
+                'Alpha':[8.,13.],
+                'Beta':[13.,20.],
+                'Low Gamma':[20.,50.],
+                'Hi Gamma':[50.,np.inf]}
+    for k,v in band_dict.items():
+        if freq_val>=v[0] and freq_val<v[1]:
+            return k
+
+def welch_an(signal,sf, win_scale=4., bands=None):
+    """Performs Welch's method for power spectral density estimation on an input signal
+     and returns a dataframe containing the frequency and power values of the signal.
+    Inputs
+    signal: a 1-dimensional array-like object containing the signal values.
+    sf: the sampling frequency of the signal.
+    win_scale: a scaling factor for the window length of the signal. The default value is 4.
+    bands: an optional dictionary of frequency bands. An empty dict {} defaults to dict from get_band. 
+    If provided, the function will add a column to the returned dataframe indicating the frequency band.
+    The bands dictionary must have overlapping bandse.g. {'low':[0,3],'med':[3,10],'hi':[10,1000]}
+    Oputput
+    welch_df: a dataframe containing the frequency and power values and if the bands argument is provided,
+    a column indicating the frequency band that each frequency value belongs to by applying the get_freq_band function to each frequency value."""
+    if isinstance(bands, dict):
+        band_dict=bands
+    else: 
+        band_dict={}
+
+    win=win_scale*sf # Define window length (default 4 s)
+    freqs, psd = sig.welch(signal, sf, nperseg=win)
+    welch_df = pd.DataFrame({'Frequency':freqs, 'Power':psd})
+    if bands!=None:
+        welch_df['Bands'] = welch_df['Frequency'].apply(get_freq_band,band_dict=band_dict)
+
+    return welch_df 
+
+def plot_welch(signal,sf, win_scale=4., bands=None):
+    """Takes a signal, a sampling frequency, 
+    and optional arguments for the window scale and frequency bands.
+    Returns plotly figure of  Welch periodgram with colored bands if bands is a dict
+    an empty dict {} will give get_band default bands."""
+    welch_df=welch_an(signal, sf, win_scale=win_scale, bands=bands)
+    try: 
+        welch_fig = px.line(welch_df, x='Frequency', y='Power',title='Welch\'s Power spectral Density')
+    except:
+        import plotly.express as px
+        welch_fig = px.line(welch_df, x='Frequency', y='Power',title='Welch\'s Power spectral Density')
+    
+    
+    if 'Bands' in welch_df.columns:
+        for b in welch_df['Bands'].unique():
+            x1=np.concatenate(welch_df.loc[welch_df['Bands']==b,['Frequency']].to_numpy())
+            y1=np.concatenate(welch_df.loc[welch_df['Bands']==b,['Power']].to_numpy())
+            welch_fig.add_scatter(x=x1,y=y1,fill='tozeroy', mode='none',name=b)
+    welch_fig.update_layout(margin=dict(l=10, r=10, t=25, b=10),
+                            paper_bgcolor="White",)
+    return welch_fig
+
+
 # General utilities
 
 def batch_open(folder_name, extension='.'):
@@ -252,6 +326,7 @@ def batch_open(folder_name, extension='.'):
             rec_list.append(file)
     print(rec_list)
     return rec_list
+
 
 
 # Wrappers and decorators
@@ -453,4 +528,3 @@ class BaseRecording(object):
   
   
 
-# %%
