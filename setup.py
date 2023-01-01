@@ -5,7 +5,7 @@
 DESCRIPTION = "NeurophysioTools: tools for Neurophysiological signals in Python"
 DISTNAME = "neurophysiotools"
 MAINTAINER = "Vincenzo Marra"
-MAINTAINER_EMAIL = "raphaelvallat9@gmail.com"
+MAINTAINER_EMAIL = "inmachinasolutions@gmail.com"
 URL = "https://github.com/enzomarra/neurophysiotools"
 LICENSE = "MIT license"
 DOWNLOAD_URL = "https://github.com/enzomarra/neurophysiotools"

@@ -5,9 +5,9 @@ Summary: NeurophysioTools: tools for Neurophysiological signals in Python
 Home-page: https://github.com/enzomarra/neurophysiotools
 Download-URL: https://github.com/enzomarra/neurophysiotools
 Author: Vincenzo Marra
-Author-email: raphaelvallat9@gmail.com
+Author-email: inmachinasolutions@gmail.com
 Maintainer: Vincenzo Marra
-Maintainer-email: raphaelvallat9@gmail.com
+Maintainer-email: inmachinasolutions@gmail.com
 License: MIT license
 Classifier: Intended Audience :: Science/Research
 Classifier: Programming Language :: Python
