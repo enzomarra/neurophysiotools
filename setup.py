@@ -9,7 +9,7 @@ MAINTAINER_EMAIL = "inmachinasolutions@gmail.com"
 URL = "https://github.com/enzomarra/neurophysiotools"
 LICENSE = "MIT license"
 DOWNLOAD_URL = "https://github.com/enzomarra/neurophysiotools"
-VERSION = "0.0.1"
+VERSION = "0.0.2"
 PACKAGE_DATA = {}
 
 try:
