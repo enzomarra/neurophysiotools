@@ -88,7 +88,7 @@ To avoid confusion in your module namespace, the classic decorator notation *@ar
 ### Functions
 Functions divided by use:
 
-#### Filters
+#### Filter functions
 Detailed descriptions are provided in the **help**, a working understanding of filters is expected.Please read around the difference between Butterworth and Bessel filters, briefly, the former has a steeper cutoff than the latter and neither causes ripples in standard conditions. The filters provided assume even sampling, which is a fair assumption with most high-end scientific instruments but may not be the case with hobbyist or consumer electronics. 
 - bandpass_filter : a 4th Butterworth bandpass filter, frequencies outside the indicated values will be attenuated.  
 - notch_filter : a 4th Butterworth 'notch' filter, meaning that all passes except a small window of frequncies. 
@@ -98,19 +98,19 @@ Detailed descriptions are provided in the **help**, a working understanding of f
 - bessel_highpass_filter : a 4th Bessel highpass filter, frequencies lower than the indicated values will be attenuated.
 - running_mean: a running mean of the signal with a given window, similar to Matlab's popular smooth function.
 
-#### Downsample
+#### Downsample functions
 Simply reduce the size of the array by averaging the sampling points, detailed descriptions are provided in the **help**. If using the **Trace** object equivalent methods are available which will also adjust the sampling rate and time axis accordingly. The downsampling functions assume even sampling, which is a fair assumption with most high-end scientific instruments but may not be the case with hobbyist or consumer electronics. 
 - downsample : downsamples the array of a given factor.
 - downsample_to : downsamples the array to a given length. 
 
-#### General measures
+#### Functions for general measures 
 Detailed descriptions are provided in the **help**, also here even sampling is assumed.
 - coastline : the sum of the absolute value of the difference between point, you can think of it as the amount of 'ink' needed to plot the trace 
 - get_freq_band : takes a frequency value and returns the band it belongs in a classic EEG frequency band classification, allows custom band definitions
 - welch_an : !requires *pandas*! returns a pandas dataframe of Welch's spectral analysis.
 - plot_welch : ! requires *pandas* and *plotly*! returns a plotly figure of a spectrogram
 
-#### Finding events
+#### Functions for finding events
 Detailed descriptions are provided in the **help**, also here even sampling is assumed.
 - find_closest_value : provides the sampled value closest to an arbitrary value provided.
 - find_closest_index : provides the index of a sampled value closest to an arbitrary value provided.
@@ -118,7 +118,7 @@ Detailed descriptions are provided in the **help**, also here even sampling is a
 - find_incipit : provides the value before the beginning of an above thresholf event. NB: this is not the last point below threshold but where trend starts.
 
 
-#### Other
+#### Other functions
 - batch_open: finds all the files in a folder with a given extension.
 
 
