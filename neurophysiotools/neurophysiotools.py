@@ -366,7 +366,7 @@ However, decorators can become messy when applying across modules so to apply a 
 it's advisable to use the target function as argument of the wrapper function. For example:
 
 arr_smoother= smooth_by_2(array.tolist)
-arr_smoother() #will return the list of arr.tolist but with running mean"""
+arr_smoother() #will return the list of array.tolist but with running mean"""
 
 
 def smooth_by_2(func):
@@ -421,7 +421,7 @@ class Trace(np.ndarray):
     If the channel_id attribute is not None, it is used as the key for the signal data. 
     If the signal_units attribute is not an empty string, it is used as the key for the signal data. 
     If neither of these conditions are met, the key for the signal data is set to 'signal'.
-    The to_df method returns a pandas DataFrame representation of the Trace object, created from the dictionary returned by the to_dict method.
+    The to_dataframe method returns a pandas DataFrame representation of the Trace object, created from the dictionary returned by the to_dict method.
     The array2trace decorator is used to get methods using standard scipy function to return a trace instead of an array."""
     #TO DO DOCUMENT THE NEW METHODS
 
@@ -448,9 +448,12 @@ class Trace(np.ndarray):
         return super().__array_wrap__(self, out_arr, context)
 
     def t_axis(self, start=0.0):
+        """Generate the time axis for the trace as numpy.array, useful for plotting"""
         return np.linspace(start,self.size/self.sampling_rate,self.size)
 
     def to_dict(self):
+        """Returns the time axis and the signal in a dictionary with two keys: 
+        time, signal"""
         if self.channel_id!=None:
             return {'time':self.t_axis(), self.channel_id:self.tolist()}
         elif self.signal_units!=str:
@@ -458,8 +461,19 @@ class Trace(np.ndarray):
         else: 
             return {'time':self.t_axis(),'signal':self.tolist()}
 
-    def to_df(self):
-        return pd.DataFrame.from_dict(self.to_dict())
+    def to_dataframe(self):
+        """Requires pandas. Returns the time axis and the signal in a dictionary with two keys: 
+        time, signal"""
+        try: 
+            return pd.DataFrame.from_dict(self.to_dict())
+        except:
+            try:
+                import pandas as pd
+                return pd.DataFrame.from_dict(self.to_dict())
+            except ImportError:
+                print("Pandas is required for this function")   
+
+        
 
     def downsample(self, factor):
         """Downsample the Trace by a given factor and changes Trace sampling rate to match.
