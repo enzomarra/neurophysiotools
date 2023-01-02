@@ -14,10 +14,7 @@ Usage
 
 ## Use the provided functions and classes for analyzing neurophysiological data
 
-<<<<<<< HEAD
 Here is a list of classes and functions, use help(FUNCTION_NAME) for more detailed documentation for each function, the intended use should be clear enough. Here, I will provide a little detail on the intended use of the classes and decorators. 
-=======
->>>>>>> c4cf5bfeeafa80d3757cda4947f98ebd6ce2c075
 
 
 ### Classes
@@ -125,21 +122,6 @@ Detailed descriptions are provided in the **help**, also here even sampling is a
 - batch_open: finds all the files in a folder with a given extension.
 
 
-<<<<<<< HEAD
-=======
-- **Trace**: Subclass of numpy.ndarray for storing and analyzing 1D neural signals.
-- **BaseRecording**: Base Class for storing traces and additional information about a recording. 
-
-The intended use is as follow:
-    
-    
-    sf= #sampling frequency in Hz
-    trace=nt.Trace()
-
-### Functions
-
-### Decodators
->>>>>>> c4cf5bfeeafa80d3757cda4947f98ebd6ce2c075
 
 ### Contributions
 
