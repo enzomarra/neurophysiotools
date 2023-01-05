@@ -74,8 +74,8 @@ To avoid confusion in your module namespace, the classic decorator notation *@ar
     # standard numpy functions can take **Trace** objects as input but will return *numpy.ndarray* as outputs
     numpy_convolved = np.convolve(trace, [1,1])
     type(numpy_convolved)
-    <class 'neurophysiotools.Trace'>
-    
+    <class 'numpy.ndarray'>
+
     # using *nt.array2trace* one can avoid namespace issues and still make numpy functions return *Trace* objects
     convolve_trace=nt.array2trace(np.convolve)
     convolved = convolve_trace(trace, [1,1])
