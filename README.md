@@ -23,45 +23,46 @@ These are the most useful elemts of the **neurophysiotools** module and one can 
 - **BaseRecording**: Base Class for storing traces and additional information about a recording. 
 
 The **Trace** object is a subclass of **numpy.ndarray**, so it inherits its attributes and methods, as well as additional ones usefult to analyse a physiological signal. Here, a physiological signal can represent a variety of  things: intracellular or extracellular electrophysiology channel, grey values of a time lapse microscopy acquisition, accelerometry channel or even pose estimation outputs. The common element is that the signal can be stored in a 1D array and, to make full use of the methods, has been sampled at evenly spaced intervals. The complete list of **Trace** attributes and methods can be obtained using the *help* function. **Trace** intended use is as follow:
-    
-    import neurophysiotools as nt
-    import numpy as np
-    
-    sf= 100.0 #sampling frequency in Hz
-    units='Volts' #label for signal units SI
-    id= 'Ch1' #label for the channel
-    filters=[0.1,500] #range of frequencies in the recording normally set in hardware
-    import numpy as np; signal_array= np.random.random(10000) 
-    trace = nt.Trace(signal_array, sampling_rate=sf, signal_units=units, channel_id=id, pre_filtered=filters)
-    type(trace)
-    out: <class 'neurophysiotools.Trace'>
+``` python
+import neurophysiotools as nt
+import numpy as np
 
+sf= 100.0 #sampling frequency in Hz
+units='Volts' #label for signal units SI
+id= 'Ch1' #label for the channel
+filters=[0.1,500] #range of frequencies in the recording normally set in hardware
+import numpy as np; signal_array= np.random.random(10000) 
+trace = nt.Trace(signal_array, sampling_rate=sf, signal_units=units, channel_id=id, pre_filtered=filters)
+type(trace)
+out: <class 'neurophysiotools.Trace'>
+```
 Given the variety of physiological recordings possible, here a very simple **BaseRecording** object is provided, the complete list of its attributes and methods can be obtained using the *help* function. The important point to keep in mind is that **BaseRecording** is not intended to be used in its *base* format but to be the parent of a customised object. Here is an example of how to use **BaseRecording** to write an object that better suits your data. In this examples, two arrays of value need to be manipulated to generate a biologically meaningful signal.
 
-    def standard_norm(array1,array2):
-        #do something
+``` python
+def standard_norm(array1,array2):
+    #do something
 
-    class Photometry_Recording(nt.BaseRecording):
-        
-        infos={}
-        def __init__(self, ch490,ch405, normalization="standard", sampling_rate=1017.25, 
-        rec_id='Photometry Exp',date_time='',description='', **kwargs):
-            
-            self.normalization=normalization
-            photosignals=[nt.Trace(ch490, sampling_rate=sampling_rate,signal_units='AU',channel_id='ch490')
-                                , nt.Trace(ch405, sampling_rate=sampling_rate, signal_units='AU',channel_id='ch405')]
+class Photometry_Recording(nt.BaseRecording):
 
-            if self.normalization=='standard':
-                photosignals.append(nt.Trace(standard_norm(ch490,ch405,sf=sampling_rate, settling=10),signal_units='DeltaF',channel_id='DeltaF'))
-            elif self.normalization=='':
-                            photosignals.append(nt.Trace(np.ones(len(ch490)), sampling_rate=sampling_rate,signal_units='DeltaF',channel_id='DeltaF'))
-            
-            super().__init__(photosignals)
-        
+    infos={}
+    def __init__(self, ch490,ch405, normalization="standard", sampling_rate=1017.25, 
+    rec_id='Photometry Exp',date_time='',description='', **kwargs):
 
-        def technique_specific_method(self):
-        """Details"""
+        self.normalization=normalization
+        photosignals=[nt.Trace(ch490, sampling_rate=sampling_rate,signal_units='AU',channel_id='ch490')
+                            , nt.Trace(ch405, sampling_rate=sampling_rate, signal_units='AU',channel_id='ch405')]
 
+        if self.normalization=='standard':
+            photosignals.append(nt.Trace(standard_norm(ch490,ch405,sf=sampling_rate, settling=10),signal_units='DeltaF',channel_id='DeltaF'))
+        elif self.normalization=='':
+                        photosignals.append(nt.Trace(np.ones(len(ch490)), sampling_rate=sampling_rate,signal_units='DeltaF',channel_id='DeltaF'))
+
+        super().__init__(photosignals)
+
+
+    def technique_specific_method(self):
+    """Details"""
+```
 
 ### Decodators
 These decorators are intended to be used when defining methods and not outside the module, at least not as decorators. Please see intended use of **array2trace** below, as an example.
@@ -69,19 +70,19 @@ These decorators are intended to be used when defining methods and not outside t
 - smooth_by_2 : applies a running mean with window 2 to an array.
 
 To avoid confusion in your module namespace, the classic decorator notation *@array2trace*  is not recommended outside the neurophysiotools module. However, *array2trace* can be imported tidily as follow:
-    
-    #imports and variables defined above
-    # standard numpy functions can take **Trace** objects as input but will return *numpy.ndarray* as outputs
-    numpy_convolved = np.convolve(trace, [1,1])
-    type(numpy_convolved)
-    <class 'numpy.ndarray'>
+``` python
+#imports and variables defined above
+# standard numpy functions can take **Trace** objects as input but will return *numpy.ndarray* as outputs
+numpy_convolved = np.convolve(trace, [1,1])
+type(numpy_convolved)
+<class 'numpy.ndarray'>
 
-    # using *nt.array2trace* one can avoid namespace issues and still make numpy functions return *Trace* objects
-    convolve_trace=nt.array2trace(np.convolve)
-    convolved = convolve_trace(trace, [1,1])
-    type(convolved)
-    <class 'neurophysiotools.Trace'>
-
+# using *nt.array2trace* one can avoid namespace issues and still make numpy functions return *Trace* objects
+convolve_trace=nt.array2trace(np.convolve)
+convolved = convolve_trace(trace, [1,1])
+type(convolved)
+<class 'neurophysiotools.Trace'>
+```
 **NB:** Since **Trace** is a subclass of *numpy.ndarray* the use of *nt.array2trace* is not required for numpy's universal funnctions *(ufunc)*. Please read numpy's documentation: [numpy ufunc](https://numpy.org/doc/stable/reference/ufuncs.html)  
     
 
